@@ -29,13 +29,13 @@ router.post("/accounts", isAuthenticated, async (req, res, next) => {
 
 router.post("/transfer", isAuthenticated, async (req, res, next) => {
   try {
-    const {
-      fromAccountId,
-      transferAmount,
-      recipientAccountType,
-      recipientAccountAddress,
-    } = req.body;
-    console.log("in account route post name, logging req.body:", req.body);
+    const { fromAccountId, transferAmount, recipientAccountAddress } = req.body;
+    if (!fromAccountId || !transferAmount || !recipientAccountAddress) {
+      return res.status(400).json({
+        errorMessage: "Failure notice from server: all fields required",
+      });
+    }
+    console.log("in transfer route transfer info, logging req.body:", req.body);
     const dbFromAccount = await Account.findById(fromAccountId);
     if (transferAmount > dbFromAccount.balance) {
       return res
@@ -57,11 +57,24 @@ router.post("/transfer", isAuthenticated, async (req, res, next) => {
       dbUpdatedFromAccount,
       dbUpdatedRecipientAccount
     );
-    if (dbUpdatedFromAccount && dbUpdatedRecipientAccount) {
-      res.json({
-        newFromAccount: dbUpdatedFromAccount,
-        newRecipientAccount: dbUpdatedRecipientAccount,
-      });
+    // const dbUpdatedAccountholder = await Accountholder.find({
+    //   $or: [
+    //     { offChainAccount: fromAccountId },
+    //     { onChainAccount: fromAccountId },
+    //   ],
+    // })
+    //   .populate("offChainAccount")
+    //   .populate("onChainAccount");
+    // console.log(
+    //   "In transferpage, logging updated Accountholder :",
+    //   dbUpdatedAccountholder
+    // );
+    if (
+      dbUpdatedFromAccount &&
+      dbUpdatedRecipientAccount //&&
+      // dbUpdatedAccountholder
+    ) {
+      res.json(dbUpdatedFromAccount);
     } else {
       throw new Error("Updating accounts failed, transfer reverted");
     }
