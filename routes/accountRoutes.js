@@ -36,6 +36,12 @@ router.post("/transfer", isAuthenticated, async (req, res, next) => {
       recipientAccountAddress,
     } = req.body;
     console.log("in account route post name, logging req.body:", req.body);
+    const dbFromAccount = await Account.findById(fromAccountId);
+    if (transferAmount > dbFromAccount.balance) {
+      return res
+        .status(400)
+        .json({ errorMessage: "Blocked by server: insufficient funds!" });
+    }
     const dbUpdatedFromAccount = await Account.findByIdAndUpdate(
       fromAccountId,
       { $inc: { balance: -transferAmount } },
