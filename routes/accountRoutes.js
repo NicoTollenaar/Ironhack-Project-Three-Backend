@@ -27,27 +27,44 @@ router.post("/accounts", isAuthenticated, async (req, res, next) => {
   }
 });
 
-router.get("/transfer/:accountId", isAuthenticated, async (req, res, next) => {
+router.post("/transfer", isAuthenticated, async (req, res, next) => {
   try {
-    const name = req.body.query;
-    console.log(
-      "in account route post name, logging name (req.body.query) :",
-      name
+    const {
+      fromAccountId,
+      transferAmount,
+      recipientAccountType,
+      recipientAccountAddress,
+    } = req.body;
+    console.log("in account route post name, logging req.body:", req.body);
+    const dbUpdatedFromAccount = await Account.findByIdAndUpdate(
+      fromAccountId,
+      { $inc: { balance: -transferAmount } },
+      { new: true }
     );
-    const dbUser = await Accountholder.findOne({ firstName: name })
-      .populate("offChainAccount")
-      .populate("onChainAccount");
-    console.log("In accountroute, logging dbUser :", dbUser);
-    if (dbUser) {
-      res.json(dbUser);
+    const dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
+      { address: recipientAccountAddress },
+      { $inc: { balance: transferAmount } },
+      { new: true }
+    );
+    console.log(
+      "In accountroute transfer logging updated account:",
+      dbUpdatedFromAccount,
+      dbUpdatedRecipientAccount
+    );
+    if (dbUpdatedFromAccount && dbUpdatedRecipientAccount) {
+      res.json({
+        newFromAccount: dbUpdatedFromAccount,
+        newRecipientAccount: dbUpdatedRecipientAccount,
+      });
     } else {
-      throw new Error("User not found");
+      throw new Error("Updating accounts failed, transfer reverted");
     }
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ errorMessage: "Message from server: something went wrong" });
+    res.status(500).json({
+      errorMessage:
+        "Message from server: something went wrong, transfer failed",
+    });
   }
 });
 
