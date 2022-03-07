@@ -11,7 +11,6 @@ router.get("/", (req, res, next) => {
 
 router.post("/signup", async (req, res, next) => {
   const { firstName, lastName, email, password, organization } = req.body;
-  console.log("req.body :", req.body);
   if (!firstName || !lastName || !email || !password || !organization) {
     res.status(400).json({ errorMessage: "All fields are required" });
     return;
@@ -31,13 +30,9 @@ router.post("/signup", async (req, res, next) => {
       });
     } else {
       const salt = bcrypt.genSaltSync(10);
-      console.log("password, just before hash: ", password);
-      console.log("salt, just before hash: ", salt);
       const passwordHash = bcrypt.hashSync(password, salt);
       req.body.passwordHash = passwordHash;
-      console.log("req.body after adding passwordHash: ", req.body);
       const dbNewUser = await User.create(req.body);
-      console.log("dbNewUser :", dbNewUser);
       const user = { id: dbNewUser._id, email: dbNewUser.email };
       return res.status(200).json(user);
     }
@@ -83,10 +78,8 @@ router.post("/login", async (req, res, next) => {
 });
 
 router.get("/authenticate", isAuthenticated, (req, res, next) => {
-  console.log("In route authenticated, passed middleware");
   // If JWT token is valid the payload gets decoded by the
   // isAuthenticated middleware and made available on `req.payload`
-  console.log(`req.payload`, req.payload);
 
   // Send back the object with user data
   // previously set as the token payload
