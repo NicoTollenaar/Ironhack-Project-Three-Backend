@@ -14,12 +14,10 @@ function getTokenFromHeaders(req) {
   ) {
     // Get the encoded token string and return it
     const token = req.headers.authorization.split(" ")[1];
-    console.log("In middleware, logging token retrieved from header :", token);
+    // console.log("In (but not yet passed) middleware, logging token retrieved from header :", token);
     return token;
   }
   return null;
 }
-
-console.log("In middleware, logging isAuthenticated :", isAuthenticated);
 
 module.exports = { isAuthenticated };
