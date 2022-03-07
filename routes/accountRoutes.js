@@ -24,9 +24,20 @@ router.post("/accounts", isAuthenticated, async (req, res, next) => {
 });
 
 router.post("/transfer", isAuthenticated, async (req, res, next) => {
+  let dbAccountRecipientBeforeTransfer, dbUpdatedRecipientAccount;
   try {
-    const { fromAccountId, transferAmount, recipientAccountAddress } = req.body;
-    if (!fromAccountId || !transferAmount || !recipientAccountAddress) {
+    const {
+      fromAccountId,
+      transferAmount,
+      recipientAccountType,
+      recipientAccountAddress,
+    } = req.body;
+    if (
+      !fromAccountId ||
+      !transferAmount ||
+      !recipientAccountType ||
+      !recipientAccountAddress
+    ) {
       return res.status(400).json({
         errorMessage: "Failure notice from server: all fields required",
       });
@@ -37,21 +48,57 @@ router.post("/transfer", isAuthenticated, async (req, res, next) => {
         .status(400)
         .json({ errorMessage: "Blocked by server: insufficient funds!" });
     }
+
+    if (recipientAccountType === "on-chain") {
+      dbAccountRecipientBeforeTransfer = await Account.findOne({
+        address: recipientAccountAddress,
+      });
+      newBalanceRecipient = await moveFundsOnChain(
+        recipientAccountAddress,
+        transferAmount
+      );
+
+      console.log(
+        "In transfer route, logging newBalanceRecipient: ",
+        newBalanceRecipient
+      );
+      console.log(
+        "In transfer route, logging dbAccountRecipientBeforeTransfer.balance (and plus transferamount): ",
+        dbAccountRecipientBeforeTransfer.balance,
+        transferAmount,
+        Number(dbAccountRecipientBeforeTransfer.balance) + transferAmount
+      );
+
+      if (
+        Number(dbAccountRecipientBeforeTransfer.balance) +
+          Number(transferAmount) ===
+        newBalanceRecipient
+      ) {
+        dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
+          { address: recipientAccountAddress },
+          { balance: newBalanceRecipient },
+          { new: true }
+        );
+      } else {
+        throw new Error(
+          "Error message from server: blockchain and database out of sync"
+        );
+      }
+    } else {
+      dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
+        { address: recipientAccountAddress },
+        { $inc: { balance: transferAmount } },
+        { new: true }
+      );
+    }
+
     const dbUpdatedFromAccount = await Account.findByIdAndUpdate(
       fromAccountId,
       { $inc: { balance: -transferAmount } },
       { new: true }
     );
-    const dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
-      { address: recipientAccountAddress },
-      { $inc: { balance: transferAmount } },
-      { new: true }
-    );
-    if (
-      dbUpdatedFromAccount &&
-      dbUpdatedRecipientAccount //&&
-      // dbUpdatedAccountholder
-    ) {
+
+    if (dbUpdatedFromAccount && dbUpdatedRecipientAccount) {
       res.json(dbUpdatedFromAccount);
     } else {
       throw new Error("Updating accounts failed, transfer reverted");
@@ -106,13 +153,13 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       transferAmount
     );
 
-    console.log("In accountroutes, logging following balances:");
+    console.log("In move-On-chain route, logging following balances:");
     console.log(
-      "In accountroutes, logging newOnChainBalance: ",
+      "In move-On-chain route, logging newOnChainBalance: ",
       newOnChainBalance
     );
     console.log(
-      "In accountroutes, logging dbRecipientAccountBeforeTransfer.balance (and plus transferamount): ",
+      "In move-On-chain route, logging dbRecipientAccountBeforeTransfer.balance (and plus transferamount): ",
       dbRecipientAccountBeforeTransfer.balance,
       transferAmount,
       Number(dbRecipientAccountBeforeTransfer.balance + transferAmount)
@@ -123,7 +170,7 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       newOnChainBalance
     ) {
       console.log(
-        "Error in move-ON chain route: blockchain and database out of sync"
+        "Error in move-ON-chain route: blockchain and database out of sync"
       );
       return res.status(400).json({
         errorMessage:
