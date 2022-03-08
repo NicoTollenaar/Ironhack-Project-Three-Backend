@@ -2,7 +2,7 @@ const router = require("express").Router();
 const Accountholder = require("../models/Accountholder.model");
 const Account = require("../models/Account.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
-const moveFundsOnChain = require("./../../scripts/moveFundsOnChain");
+const moveFundsOnChain = require("./../scripts/moveFundsOnChain");
 
 router.post("/accounts", isAuthenticated, async (req, res, next) => {
   try {
