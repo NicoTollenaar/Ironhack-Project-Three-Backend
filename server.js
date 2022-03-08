@@ -18,6 +18,10 @@ app.get("/", (req, res, next) => {
   res.json({ message: "this will be the entry page for demo users" });
 });
 
+app.get("/", (req, res) => {
+  res.send("All good here!");
+});
+
 const authRoutes = require("./routes/authRoutes.js");
 app.use("/", authRoutes);
 
