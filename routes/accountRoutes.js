@@ -177,7 +177,7 @@ router.post(
         );
       } else {
         console.log(
-          "In THIS transfer from on-chain route, error: database and blockchain not in sync"
+          "In transfer from on-chain route, error: database and blockchain not in sync"
         );
         return res.status(500).json({
           errorMessage:
@@ -237,8 +237,6 @@ router.post(
 );
 
 router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
-  console.log("Just arrived in move-ON-chain route, passed middleware");
-
   let dbUpdatedFromAccount;
   let dbUpdatedRecipientAccount;
   try {
@@ -286,12 +284,13 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       "In move-On-chain route, logging dbRecipientAccountBeforeTransfer.balance (and plus transferamount): ",
       dbRecipientAccountBeforeTransfer.balance,
       transferAmount,
-      Number(dbRecipientAccountBeforeTransfer.balance + transferAmount)
+      Number(dbRecipientAccountBeforeTransfer.balance + Number(transferAmount))
     );
 
     if (
-      Number(dbRecipientAccountBeforeTransfer.balance + transferAmount) !==
-      newOnChainBalance
+      Number(
+        dbRecipientAccountBeforeTransfer.balance + Number(transferAmount)
+      ) !== newOnChainBalance
     ) {
       console.log(
         "Error in move-ON-chain route: blockchain and database out of sync"
