@@ -1,9 +1,10 @@
-require("dotenv").config({ path: "./../../.env" });
+// require("dotenv").config({ path: "./../../.env" });
+const mongoDb = require("./../utils/consts");
+console.log("mongoDb: ", mongoDb);
 
 const mongoose = require("mongoose");
 
-// line below somehow not working, temporarily hardcode mongoDb into mongoose.connect(), fix later
-const mongoDb = process.env.MONGODB_REMOTE_URI || process.env.MONG0DB_LOCAL_URI;
+// const mongoDb = process.env.MONGODB_REMOTE_URI || process.env.MONG0DB_LOCAL_URI;
 
 async function connectDatabase() {
   try {
