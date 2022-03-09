@@ -2,12 +2,12 @@ const { Schema, model } = require("mongoose");
 
 const transactionSchema = new Schema(
   {
-    from: {
+    fromAccountid: {
       type: Schema.Types.ObjectId,
       ref: "Account",
       required: true,
     },
-    to: {
+    toAccountId: {
       type: Schema.Types.ObjectId,
       ref: "Account",
       required: true,
