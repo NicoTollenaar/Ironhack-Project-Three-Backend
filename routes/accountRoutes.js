@@ -3,7 +3,7 @@ const Accountholder = require("../models/Accountholder.model");
 const Account = require("../models/Account.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 const moveFundsOnChain = require("./../scripts/moveFundsOnChain");
-
+const Transaction = require("./../models/Transaction.model");
 router.post("/accounts", isAuthenticated, async (req, res, next) => {
   try {
     const name = req.body.query;
@@ -27,7 +27,7 @@ router.post(
   "/transfer/from-off-chain-account",
   isAuthenticated,
   async (req, res, next) => {
-    let dbAccountRecipientBeforeTransfer, dbUpdatedRecipientAccount;
+    let dbAccountRecipientBeforeTransfer, dbUpdatedRecipientAccount, txHash;
     try {
       const {
         fromAccountId,
@@ -56,10 +56,10 @@ router.post(
         dbAccountRecipientBeforeTransfer = await Account.findOne({
           address: recipientAccountAddress,
         });
-        newBalanceRecipient = await moveFundsOnChain(
+        ({ newBalanceRecipient, txHash } = await moveFundsOnChain(
           recipientAccountAddress,
           transferAmount
-        );
+        ));
 
         console.log(
           "In transfer route, logging newBalanceRecipient: ",
@@ -88,6 +88,7 @@ router.post(
           );
         }
       } else {
+        txHash = "0x";
         dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
           { address: recipientAccountAddress },
           { $inc: { balance: transferAmount } },
@@ -101,8 +102,19 @@ router.post(
         { new: true }
       );
 
-      if (dbUpdatedFromAccount && dbUpdatedRecipientAccount) {
-        res.json(dbUpdatedFromAccount);
+      dbNewTransaction = await Transaction.create({
+        fromAccountId,
+        toAccountId: dbUpdatedRecipientAccount._id,
+        amount: transferAmount,
+        txHash,
+      });
+
+      if (
+        dbUpdatedFromAccount &&
+        dbUpdatedRecipientAccount &&
+        dbNewTransaction
+      ) {
+        res.json({ dbUpdatedFromAccount, dbNewTransaction });
       } else {
         throw new Error("Updating accounts failed, transfer reverted");
       }
@@ -132,8 +144,10 @@ router.post(
         recipientAccountAddress,
         newBalanceTransferorFrontend,
         newBalanceRecipientFrontend,
+        txHash,
       } = req.body;
       if (
+        !txHash ||
         !fromAccountId ||
         !transferAmount ||
         !recipientAccountType ||
@@ -221,8 +235,19 @@ router.post(
         );
       }
 
-      if (dbUpdatedFromAccount && dbUpdatedRecipientAccount) {
-        res.json(dbUpdatedFromAccount);
+      const dbNewTransaction = await Transaction.create({
+        fromAccountId,
+        toAccountId: dbUpdatedRecipientAccount._id,
+        amount: transferAmount,
+        txHash,
+      });
+
+      if (
+        dbUpdatedFromAccount &&
+        dbUpdatedRecipientAccount &&
+        dbNewTransaction
+      ) {
+        res.json({ dbUpdatedFromAccount, dbNewTransaction });
       } else {
         throw new Error("Updating accounts failed, transfer reverted");
       }
@@ -270,7 +295,7 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       address: recipientAccountAddress,
     });
 
-    const newOnChainBalance = await moveFundsOnChain(
+    const { newOnChainBalance, txHash } = await moveFundsOnChain(
       recipientAccountAddress,
       transferAmount
     );
@@ -311,8 +336,26 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       { balance: newOnChainBalance },
       { new: true }
     );
-    if (dbUpdatedFromAccount && dbUpdatedRecipientAccount) {
-      res.json({ dbUpdatedFromAccount, dbUpdatedRecipientAccount });
+    dbNewTransaction = await Transaction.create({
+      fromAccountId: fromAccountId,
+      toAccountId: dbRecipientAccountBeforeTransfer._id,
+      amount: transferAmount,
+      txHash,
+    });
+
+    console.log(
+      "In accountroute/move-funds-on-chain, logging what is returned to front end (modal form), dbUpdateFromAccount, dbUpdatedRecipientAccount, dbNewTransaction: ",
+      dbUpdatedFromAccount,
+      dbUpdatedRecipientAccount,
+      dbNewTransaction
+    );
+
+    if (dbUpdatedFromAccount && dbUpdatedRecipientAccount && dbNewTransaction) {
+      res.json({
+        dbUpdatedFromAccount,
+        dbUpdatedRecipientAccount,
+        dbNewTransaction,
+      });
     } else {
       console.log("Error in move-ON-chain route: updating database failed");
       throw new Error("Server error: updating accounts failed");
@@ -322,7 +365,7 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       "Error in move-ON-chain route, catch block, logging error: ",
       error
     );
-    res.status(500).json({
+    return res.status(500).json({
       errorMessage:
         "Message from server: something went wrong, transfer failed",
     });
@@ -340,19 +383,13 @@ router.post("/move-off-chain", isAuthenticated, async (req, res, next) => {
       transferAmount,
       recipientAccountType,
       recipientAccountAddress,
+      txHash,
     } = req.body;
 
     console.log("In move-off-chain route, logging req.body: ", req.body);
-    console.log(
-      "In move-off-chain route, logging properties req.body: ",
-      fromAccountId,
-      newFromAccountBalance,
-      transferAmount,
-      recipientAccountType,
-      recipientAccountAddress
-    );
 
     if (
+      !txHash ||
       !fromAccountId ||
       newFromAccountBalance === undefined ||
       transferAmount === undefined ||
@@ -399,12 +436,25 @@ router.post("/move-off-chain", isAuthenticated, async (req, res, next) => {
     })
       .populate("offChainAccount")
       .populate("onChainAccount");
+
+    const dbNewTransaction = await Transaction.create({
+      fromAccountId,
+      toAccountId: dbUpdatedRecipientAccount._id,
+      amount: transferAmount,
+      txHash,
+    });
+
     if (
       dbUpdatedFromAccount &&
       dbUpdatedRecipientAccount &&
-      dbUpdatedAccountholder
+      dbUpdatedAccountholder &&
+      dbNewTransaction
     ) {
-      res.json({ dbUpdatedFromAccount, dbUpdatedRecipientAccount });
+      res.json({
+        dbUpdatedFromAccount,
+        dbUpdatedRecipientAccount,
+        dbNewTransaction,
+      });
     } else {
       console.log(
         "Error in move-off chain route: something went wrong with database operations"

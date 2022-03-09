@@ -5,10 +5,6 @@ const { isAuthenticated } = require("./../middleware/jwt.middleware");
 const User = require("../models/User.model");
 const SALTROUNDS = 10;
 
-router.get("/", (req, res, next) => {
-  res.json({ message: "response from a succesful get request to /admin" });
-});
-
 router.post("/signup", async (req, res, next) => {
   const { firstName, lastName, email, password, organization } = req.body;
   if (!firstName || !lastName || !email || !password || !organization) {

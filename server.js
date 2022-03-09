@@ -21,10 +21,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.text());
 app.use(express.static("./public"));
 
-app.get("/", (req, res, next) => {
-  res.json({ message: "this will be the entry page for demo users" });
-});
-
 const authRoutes = require("./routes/authRoutes.js");
 app.use("/", authRoutes);
 
@@ -38,7 +34,7 @@ let serverSentResponse = {};
 async function eventHandler(request, response) {
   const headers = {
     "Content-Type": "text/event-stream",
-    "Connection": "keep-alive",
+    Connection: "keep-alive",
     "Cache-Control": "no-cache",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Credentials": "true",
@@ -47,11 +43,10 @@ async function eventHandler(request, response) {
   serverSentResponse = response;
 }
 
-// const blockchainEventHandler = require("./sse/blockchainEventHandler");
 app.post("/blockchain-events", blockchainEventHandler);
 
 async function blockchainEventHandler(req, res, next) {
-  console.log("In blockchainEventHandler, logging req.body: ", req.body);
+  // console.log("In blockchainEventHandler, logging req.body: ", req.body);
   await res.json(req.body);
   return sendToClient(req.body);
 }

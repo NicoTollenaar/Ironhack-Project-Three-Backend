@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 
 const transactionSchema = new Schema(
   {
-    fromAccountid: {
+    fromAccountId: {
       type: Schema.Types.ObjectId,
       ref: "Account",
       required: true,
@@ -15,6 +15,11 @@ const transactionSchema = new Schema(
     amount: {
       type: Number,
       required: true,
+    },
+    txHash: {
+      type: String,
+      required: true,
+      unique: true,
     },
   },
   {
