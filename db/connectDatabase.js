@@ -4,8 +4,6 @@ console.log("mongoDb: ", mongoDb);
 
 const mongoose = require("mongoose");
 
-// const mongoDb = process.env.MONGODB_REMOTE_URI || process.env.MONG0DB_LOCAL_URI;
-
 async function connectDatabase() {
   try {
     console.log("In connectDatabase, logging mongodb :", mongoDb);

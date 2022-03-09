@@ -4,8 +4,15 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 require("./db/connectDatabase");
+// require("./scripts/WebsocketEventListener");
 
-app.use(cors({ origin: `http://localhost:${process.env.PORT_REACT_APP}` }));
+app.use(
+  cors({
+    credentials: true,
+    origin:
+      process.env.ORIGIN || `http://localhost:${process.env.PORT_REACT_APP}`,
+  })
+);
 
 app.use(morgan("dev"));
 
