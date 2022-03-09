@@ -32,7 +32,7 @@ async function blockchainEventHandler(req, res, next) {
       res.json(req.body);
       return;
     } else if (!dbTransaction && recipientAddress !== ETHAddressBank) {
-      const dbUpdatedSenderAccount = await Account.findOneAndUpdate(
+      const dbUpdatedFromAccount = await Account.findOneAndUpdate(
         { address: senderAddress },
         { $inc: { balance: -amount } },
         { new: true }
@@ -45,12 +45,12 @@ async function blockchainEventHandler(req, res, next) {
       );
 
       console.log(
-        "In serversideroute, logging dbUpdatedRecipientAccount and dbUpdatedSenderAccount",
+        "In serversideroute, logging dbUpdatedRecipientAccount and dbUpdatedFromAccount",
         dbUpdatedRecipientAccount,
-        dbUpdatedSenderAccount
+        dbUpdatedFromAccount
       );
 
-      const fromAccountId = dbUpdatedSenderAccount.accountholder;
+      const fromAccountId = dbUpdatedFromAccount.accountholder;
       const toAccountId = dbUpdatedRecipientAccount.accountholder;
 
       const dbNewTransaction = await Transaction.create({
@@ -59,8 +59,12 @@ async function blockchainEventHandler(req, res, next) {
         amount,
         txHash,
       });
-      await res.json({ dbUpdatedSenderAccount, dbNewTransaction });
-      return sendToClient({ dbUpdatedSenderAccount, dbNewTransaction });
+      await res.json({ dbUpdatedFromAccount, dbNewTransaction });
+      return sendToClient({
+        dbUpdatedFromAccount,
+        dbUpdatedRecipientAccount,
+        dbNewTransaction,
+      });
     }
   } catch (error) {
     console.log(error);
