@@ -4,7 +4,6 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 require("./db/connectDatabase");
-// require("./scripts/WebsocketEventListener");
 
 app.use(
   cors({
@@ -27,33 +26,8 @@ app.use("/", authRoutes);
 const accountRoutes = require("./routes/accountRoutes");
 app.use("/", accountRoutes);
 
-app.get("/events", eventHandler);
-
-let serverSentResponse = {};
-
-async function eventHandler(request, response) {
-  const headers = {
-    "Content-Type": "text/event-stream",
-    Connection: "keep-alive",
-    "Cache-Control": "no-cache",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Credentials": "true",
-  };
-  response.writeHead(200, headers);
-  serverSentResponse = response;
-}
-
-app.post("/blockchain-events", blockchainEventHandler);
-
-async function blockchainEventHandler(req, res, next) {
-  // console.log("In blockchainEventHandler, logging req.body: ", req.body);
-  await res.json(req.body);
-  return sendToClient(req.body);
-}
-
-function sendToClient(object) {
-  serverSentResponse.write(`data: ${JSON.stringify(object)}\n\n`);
-}
+const serverSideEventRoutes = require("./routes/serverSideEventRoutes");
+app.use("/", serverSideEventRoutes);
 
 app.listen(process.env.PORT_SERVER, () => {
   console.log(

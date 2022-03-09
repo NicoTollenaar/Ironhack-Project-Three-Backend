@@ -28,23 +28,23 @@ router.post(
   isAuthenticated,
   async (req, res, next) => {
     let dbAccountRecipientBeforeTransfer, dbUpdatedRecipientAccount, txHash;
+    const {
+      fromAccountId,
+      transferAmount,
+      recipientAccountType,
+      recipientAccountAddress,
+    } = req.body;
+    if (
+      !fromAccountId ||
+      !transferAmount ||
+      !recipientAccountType ||
+      !recipientAccountAddress
+    ) {
+      return res.status(400).json({
+        errorMessage: "Failure notice from server: all fields required",
+      });
+    }
     try {
-      const {
-        fromAccountId,
-        transferAmount,
-        recipientAccountType,
-        recipientAccountAddress,
-      } = req.body;
-      if (
-        !fromAccountId ||
-        !transferAmount ||
-        !recipientAccountType ||
-        !recipientAccountAddress
-      ) {
-        return res.status(400).json({
-          errorMessage: "Failure notice from server: all fields required",
-        });
-      }
       const dbFromAccount = await Account.findById(fromAccountId);
       if (transferAmount > dbFromAccount.balance) {
         return res
@@ -74,17 +74,22 @@ router.post(
 
         if (
           Number(dbAccountRecipientBeforeTransfer.balance) +
-            Number(transferAmount) ===
+            Number(transferAmount) !==
           newBalanceRecipient
         ) {
+          throw new Error(
+            "Error message from server: blockchain and database out of sync"
+          );
+        }
+        const dbTransaction = await Transaction.findOne({ txHash });
+        if (dbTransaction) {
+          res.json(req.body);
+          return;
+        } else if (!dbTransaction) {
           dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
             { address: recipientAccountAddress },
             { balance: newBalanceRecipient },
             { new: true }
-          );
-        } else {
-          throw new Error(
-            "Error message from server: blockchain and database out of sync"
           );
         }
       } else {
@@ -120,7 +125,7 @@ router.post(
       }
     } catch (error) {
       console.log(error);
-      res.status(500).json({
+      return res.status(500).json({
         errorMessage:
           "Message from server: something went wrong, transfer failed",
       });
@@ -133,19 +138,23 @@ router.post(
   isAuthenticated,
   async (req, res, next) => {
     console.log("Arrived in transfer/from-on-chain-account");
+    const {
+      fromAccountId,
+      transferAmount,
+      recipientAccountType,
+      recipientAccountAddress,
+      newBalanceTransferorFrontend,
+      newBalanceRecipientFrontend,
+      txHash,
+    } = req.body;
     let dbAccountRecipientBeforeTransfer,
       dbUpdatedRecipientAccount,
       dbUpdatedFromAccount;
     try {
-      const {
-        fromAccountId,
-        transferAmount,
-        recipientAccountType,
-        recipientAccountAddress,
-        newBalanceTransferorFrontend,
-        newBalanceRecipientFrontend,
-        txHash,
-      } = req.body;
+      const dbTransaction = await Transaction.findOne({ txHash });
+      if (dbTransaction) {
+        return;
+      }
       if (
         !txHash ||
         !fromAccountId ||
