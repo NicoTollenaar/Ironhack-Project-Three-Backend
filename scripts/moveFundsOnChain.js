@@ -1,23 +1,25 @@
 require("dotenv").config({ path: "./../.env" });
-const { ethers } = require("hardhat");
+const { ethers } = require("ethers");
 const fs = require("fs");
 const { chainAccountContractAddress } = JSON.parse(
   fs.readFileSync("./../config.json")
 );
+const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
+const providerUrl = "http://localhost:7545";
 
 async function moveFundsOnChain(onChainAddress, amount) {
+  const provider = new ethers.providers.JsonRpcProvider(providerUrl);
   try {
-    const accounts = await ethers.provider.listAccounts();
+    const accounts = await provider.listAccounts();
     console.log("Accounts on this network: ", accounts);
-    const bankSigner = await ethers.getSigner(0); //using default signer as bank signer
+    const bankSigner = provider.getSigner(0); //using default signer as bank signer
 
     console.log("\nTransactions being mined, please wait ...");
-    const chainAccountContract = await ethers.getContractAt(
-      "ChainAccount",
-      chainAccountContractAddress
+    const chainAccountContract = new ethers.Contract(
+      chainAccountContractAddress,
+      abi,
+      provider
     );
-
-    // when running below code with alchemyProvider on rinkeby connect(bankSigner) to contract
 
     const name = await chainAccountContract.connect(bankSigner).name();
     const symbol = await chainAccountContract.connect(bankSigner).symbol();

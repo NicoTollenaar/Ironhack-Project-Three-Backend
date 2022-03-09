@@ -28,10 +28,18 @@ async function blockchainEventHandler(req, res, next) {
   );
   try {
     const dbTransaction = await Transaction.findOne({ txHash });
-    if (dbTransaction || recipientAddress === ETHAddressBank) {
+    if (
+      dbTransaction ||
+      recipientAddress === ETHAddressBank ||
+      senderAddress === ETHAddressBank
+    ) {
       res.json(req.body);
       return;
-    } else if (!dbTransaction && recipientAddress !== ETHAddressBank) {
+    } else if (
+      !dbTransaction &&
+      recipientAddress !== ETHAddressBank &&
+      senderAddress !== ETHAddressBank
+    ) {
       const dbUpdatedFromAccount = await Account.findOneAndUpdate(
         { address: senderAddress },
         { $inc: { balance: -amount } },

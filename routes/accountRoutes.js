@@ -56,26 +56,27 @@ router.post(
         dbAccountRecipientBeforeTransfer = await Account.findOne({
           address: recipientAccountAddress,
         });
-        ({ newBalanceRecipient, txHash } = await moveFundsOnChain(
+        ({ newOnChainBalance, txHash } = await moveFundsOnChain(
           recipientAccountAddress,
           transferAmount
         ));
 
         console.log(
-          "In transfer route, logging newBalanceRecipient: ",
-          newBalanceRecipient
+          "In transfer route, logging newOnChainBalance: ",
+          newOnChainBalance
         );
         console.log(
           "In transfer route, logging dbAccountRecipientBeforeTransfer.balance (and plus transferamount): ",
           dbAccountRecipientBeforeTransfer.balance,
           transferAmount,
-          Number(dbAccountRecipientBeforeTransfer.balance) + transferAmount
+          Number(dbAccountRecipientBeforeTransfer.balance) +
+            Number(transferAmount)
         );
 
         if (
           Number(dbAccountRecipientBeforeTransfer.balance) +
             Number(transferAmount) !==
-          newBalanceRecipient
+          newOnChainBalance
         ) {
           throw new Error(
             "Error message from server: blockchain and database out of sync"
@@ -88,7 +89,7 @@ router.post(
         } else if (!dbTransaction) {
           dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
             { address: recipientAccountAddress },
-            { balance: newBalanceRecipient },
+            { balance: newOnChainBalance },
             { new: true }
           ).populate("accountholder");
         }
@@ -112,9 +113,7 @@ router.post(
         toAccountId: dbUpdatedRecipientAccount._id,
         amount: transferAmount,
         txHash,
-      })
-        .populate("toAccountId")
-        .populate("fromAccountId");
+      });
 
       if (
         dbUpdatedFromAccount &&
@@ -255,9 +254,7 @@ router.post(
         toAccountId: dbUpdatedRecipientAccount._id,
         amount: transferAmount,
         txHash,
-      })
-        .populate("fromAccountId")
-        .populate("toAccountId");
+      });
 
       if (
         dbUpdatedFromAccount &&
@@ -364,9 +361,7 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       toAccountId: dbRecipientAccountBeforeTransfer._id,
       amount: transferAmount,
       txHash,
-    })
-      .populate("fromAccountId")
-      .populate("toAccountId");
+    });
 
     console.log(
       "In accountroute/move-funds-on-chain, logging what is returned to front end (modal form), dbUpdateFromAccount, dbUpdatedRecipientAccount, dbNewTransaction: ",
@@ -469,9 +464,7 @@ router.post("/move-off-chain", isAuthenticated, async (req, res, next) => {
       toAccountId: dbUpdatedRecipientAccount._id,
       amount: transferAmount,
       txHash,
-    })
-      .populate("fromAccountId")
-      .populate("toAccountId");
+    });
 
     if (
       dbUpdatedFromAccount &&
