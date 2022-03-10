@@ -1,8 +1,8 @@
 const router = require("express").Router();
 const Transaction = require("./../models/Transaction.model");
 const Account = require("./../models/Account.model");
+const ETHAddressBank = require("./../utils/constants");
 let serverSentEvent = {};
-const ETHAddressBank = "0x03F04fDa3B6E6FA1783A5EDB810155e5F4dD5461";
 
 router.get("/events", eventHandler);
 

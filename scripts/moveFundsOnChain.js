@@ -1,18 +1,24 @@
 require("dotenv").config({ path: "./../.env" });
 const { ethers } = require("ethers");
 const fs = require("fs");
-const { chainAccountContractAddress } = JSON.parse(
-  fs.readFileSync("./../config.json")
-);
 const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
-const providerUrl = "http://localhost:7545";
+const {
+  chainAccountContractAddress,
+  providerUrl,
+  privateKeyBank,
+} = require("../utils/constants");
 
 async function moveFundsOnChain(onChainAddress, amount) {
-  const provider = new ethers.providers.JsonRpcProvider(providerUrl);
+  const provider = new ethers.providers.AlchemyProvider(
+    "rinkeby",
+    process.env.ALCHEMY_API_KEY
+  );
+
+  const bankSigner = new ethers.Wallet(privateKeyBank, provider);
+
   try {
     const accounts = await provider.listAccounts();
-    console.log("Accounts on this network: ", accounts);
-    const bankSigner = provider.getSigner(0); //using default signer as bank signer
+    // const bankSigner = provider.getSigner(0); //using default signer as bank signer
 
     console.log("\nTransactions being mined, please wait ...");
     const chainAccountContract = new ethers.Contract(
@@ -47,12 +53,6 @@ async function moveFundsOnChain(onChainAddress, amount) {
       newOnChainBalance: balanceDepositor / 10 ** decimals,
       txHash: tx.hash,
     };
-
-    // console.log(
-    //   "In move funds on-chain function, logging what is return to modal form (newOnchain balance and txHash): ",
-    //   newOnChainBalance,
-    //   txHash
-    // );
   } catch (error) {
     console.log("Error in catch block, logging error: ", error);
   }

@@ -1,5 +1,5 @@
 // require("dotenv").config({ path: "./../../.env" });
-const mongoDb = require("./../utils/consts");
+const { mongoDb } = require("../utils/constants");
 console.log("mongoDb: ", mongoDb);
 
 const mongoose = require("mongoose");

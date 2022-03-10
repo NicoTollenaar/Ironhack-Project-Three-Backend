@@ -1,15 +1,17 @@
 const { default: axios } = require("axios");
 const { ethers } = require("ethers");
 const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
-const chainAccountContractAddress =
-  "0x471184AE3a9632a3a65d846f961b3a4b8A9e416A";
+const {
+  providerUrl,
+  chainAccountContractAddress,
+  backendUrlConstant,
+} = require("../utils/constants");
 console.log(
   "Websocket provider running, listening for events on blockchain ..."
 );
 
 async function main() {
-  const ganacheUrl = "http://localhost:7545";
-  const webSocketProvider = new ethers.providers.WebSocketProvider(ganacheUrl);
+  const webSocketProvider = new ethers.providers.WebSocketProvider(providerUrl);
 
   const chainAccountContract = new ethers.Contract(
     chainAccountContractAddress,
@@ -37,22 +39,23 @@ async function main() {
         console.log("sender: ", senderAddress);
         console.log("recipient: ", recipientAddress);
         console.log("amount: ", amount.toString() / 100);
+        console.log("topic: ", topic);
 
         try {
-          const responseFromGanache = await axios.post(ganacheUrl, request);
+          const responseFromProvider = await axios.post(providerUrl, request);
           console.log(
-            "response.data from JSON rpc request get_Logs: ",
-            responseFromGanache.data
+            "axios response.data from blockchain provider, get_Logs (with txHash): ",
+            responseFromProvider.data
           );
 
           const body = {
             senderAddress,
             recipientAddress,
             amount: amount.toString() / 100,
-            txHash: responseFromGanache.data.result[0].transactionHash,
+            txHash: responseFromProvider.data.result[0].transactionHash,
           };
 
-          const backendUrl = "http://localhost:4001/blockchain-events";
+          const backendUrl = `${backendUrlConstant}/blockchain-events`;
           const responseFromBackEnd = await axios.post(backendUrl, body);
           console.log(
             "In websocketProvider, logging response from backend (returning body): ",
