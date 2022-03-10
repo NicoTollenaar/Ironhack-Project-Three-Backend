@@ -4,12 +4,13 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 require("./db/connectDatabase");
+const PORT = process.env.CHAINACCOUNT_API_URL || process.env.LOCALHOST_SERVER;
 
 app.use(
   cors({
     credentials: true,
     origin:
-      process.env.ORIGIN || `http://localhost:${process.env.PORT_REACT_APP}`,
+      process.env.ORIGIN || `http://localhost:${process.env.LOCALHOST_PORT_REACT_APP}`,
   })
 );
 
@@ -29,8 +30,8 @@ app.use("/", accountRoutes);
 const serverSideEventRoutes = require("./routes/serverSideEventRoutes");
 app.use("/", serverSideEventRoutes);
 
-app.listen(process.env.PORT_SERVER, () => {
+app.listen(PORT, () => {
   console.log(
-    `Express server running, listening on PORT ${process.env.PORT_SERVER} ...`
+    `Express server running, listening on PORT ${PORT} ...`
   );
 });
