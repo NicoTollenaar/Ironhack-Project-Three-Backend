@@ -12,9 +12,11 @@ console.log(
 );
 
 async function main() {
-  // using http instead of websocketconnection to see whether websocket connection causing site to hang
+  // http also works instead of websocketconnection
 
-  const webSocketProvider = new ethers.providers.WebSocketProvider(providerUrl);
+  const webSocketProvider = new ethers.providers.WebSocketProvider(
+    websocketConnectionAlchemyRinkeby
+  );
 
   const chainAccountContract = new ethers.Contract(
     chainAccountContractAddress,
