@@ -4,7 +4,7 @@ const express = require("express");
 const app = express();
 const morgan = require("morgan");
 require("./db/connectDatabase");
-const PORT = process.env.CHAINACCOUNT_API_URL || process.env.LOCALHOST_SERVER;
+const PORT = process.env.PORT || 80;
 
 app.use(
   cors({
