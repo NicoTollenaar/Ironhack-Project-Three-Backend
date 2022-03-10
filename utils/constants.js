@@ -11,11 +11,11 @@ const alchemyRinkebyUrl =
 const websocketConnectionAlchemyRinkeby =
   "wss://eth-rinkeby.alchemyapi.io/v2/7eJSSFxEImk4KkiEgIqx92i5r29HLEUK";
 
-const privateKeyBank = process.env.RINKEBY_PRIVATE_KEY_ZERO;
+const privateKeyBank = process.env.PRIVATE_KEY_BANK_GANACHE_RINKEBY || process.env.RINKEBY_PRIVATE_KEY_ZERO;
 
 const ETHAddressBank = "0x03F04fDa3B6E6FA1783A5EDB810155e5F4dD5461";
 const backendUrlLocalHost = "http://localhost:4001";
-const backendUrlHeroku = "";
+const backendUrlHeroku = "https://chainaccount-api.herokuapp.com";
 
 module.exports = {
   providerUrl: alchemyRinkebyUrl,
@@ -23,6 +23,6 @@ module.exports = {
   mongoDb,
   ETHAddressBank,
   privateKeyBank,
-  backendUrlConstant: backendUrlLocalHost,
+  backendUrlConstant: backendUrlHeroku,
   websocketConnectionAlchemyRinkeby,
 };
