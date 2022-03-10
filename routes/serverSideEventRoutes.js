@@ -50,7 +50,7 @@ async function blockchainEventHandler(req, res, next) {
         { address: recipientAddress },
         { $inc: { balance: amount } },
         { new: true }
-      );
+      ).populate("accountholder");
 
       console.log(
         "In serversideroute, logging dbUpdatedRecipientAccount and dbUpdatedFromAccount",

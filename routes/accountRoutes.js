@@ -13,13 +13,11 @@ router.post("/accounts", isAuthenticated, async (req, res, next) => {
     if (dbUser) {
       res.json(dbUser);
     } else {
-      throw new Error("User not found");
+      throw new Error("Message from server: user not found");
     }
   } catch (error) {
     console.log(error);
-    res
-      .status(500)
-      .json({ errorMessage: "Message from server: something went wrong" });
+    res.status(500).json({ errorMessage: JSON.stringify(error) });
   }
 });
 
