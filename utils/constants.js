@@ -8,6 +8,9 @@ const contractAddressOnRinkeby = "0x511103EE939859971B00F240c7865e1885EbC825";
 const alchemyRinkebyUrl =
   "https://eth-rinkeby.alchemyapi.io/v2/7eJSSFxEImk4KkiEgIqx92i5r29HLEUK";
 
+const websocketConnectionAlchemyRinkeby =
+  "wss://eth-rinkeby.alchemyapi.io/v2/7eJSSFxEImk4KkiEgIqx92i5r29HLEUK";
+
 const privateKeyBank = process.env.RINKEBY_PRIVATE_KEY_ZERO;
 
 const ETHAddressBank = "0x03F04fDa3B6E6FA1783A5EDB810155e5F4dD5461";
@@ -21,4 +24,5 @@ module.exports = {
   ETHAddressBank,
   privateKeyBank,
   backendUrlConstant: backendUrlLocalHost,
+  websocketConnectionAlchemyRinkeby,
 };

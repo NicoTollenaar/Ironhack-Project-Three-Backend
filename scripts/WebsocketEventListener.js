@@ -5,12 +5,15 @@ const {
   providerUrl,
   chainAccountContractAddress,
   backendUrlConstant,
+  websocketConnectionAlchemyRinkeby,
 } = require("../utils/constants");
 console.log(
   "Websocket provider running, listening for events on blockchain ..."
 );
 
 async function main() {
+  // using http instead of websocketconnection to see whether websocket connection causing site to hang
+
   const webSocketProvider = new ethers.providers.WebSocketProvider(providerUrl);
 
   const chainAccountContract = new ethers.Contract(
@@ -22,14 +25,47 @@ async function main() {
   const topic = chainAccountContract.interface.getEventTopic("Transfer");
 
   try {
+    // request body below works for standard ethereum json rpc request to ganache. This does not seem to work on rinkeby using Alchemy provider.
+
+    // const request = {
+    //   jsonrpc: "2.0",
+    //   method: "eth_getLogs",
+    //   params: {
+    //     fromBlock: "latest",
+    //     address: [chainAccountContractAddress],
+    //     topics: [topic],
+    //   },
+    // };
+
+    // TRYING FOR ALCHEMY/RINKEBY:
+
+    const response = await axios.post(providerUrl, {
+      jsonrpc: "2.0",
+      id: "0",
+      method: "eth_blockNumber",
+    });
+
+    const blockNumber = response.data.result;
+
+    console.log("response.data, block number: ", response.data, blockNumber);
+
+    const previousBlock = `0x${(Number(blockNumber) - 1).toString(16)}`;
+
+    console.log("previous block: ", previousBlock, typeof previousBlock);
+
     const request = {
       jsonrpc: "2.0",
+      id: "0",
       method: "eth_getLogs",
-      params: {
-        fromBlock: "latest",
-        address: [chainAccountContractAddress],
-        topics: [topic],
-      },
+      params: [
+        {
+          fromBlock: previousBlock,
+          address: "0x511103EE939859971B00F240c7865e1885EbC825",
+          topics: [
+            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+          ],
+        },
+      ],
     };
 
     chainAccountContract.on(
@@ -48,11 +84,13 @@ async function main() {
             responseFromProvider.data
           );
 
+          const lastTransaction = responseFromProvider.data.result.slice(-1)[0];
+
           const body = {
             senderAddress,
             recipientAddress,
             amount: amount.toString() / 100,
-            txHash: responseFromProvider.data.result[0].transactionHash,
+            txHash: lastTransaction.transactionHash,
           };
 
           const backendUrl = `${backendUrlConstant}/blockchain-events`;
@@ -74,6 +112,41 @@ async function main() {
 main();
 
 module.exports = main;
+
+// this works on postman
+
+// {
+//   "jsonrpc": "2.0",
+//   "id": 0,
+//   "method": "alchemy_getAssetTransfers",
+//   "params": [
+//       {
+//           "fromBlock": "0x9d3981",
+//           "contractAddresses": [
+//               "0x511103EE939859971B00F240c7865e1885EbC825"
+//           ],
+//           "category": [
+//               "token",
+//               "erc20"
+//           ]
+//       }
+//   ]
+// }
+
+// AND THIS TOO:
+
+// {
+//   "jsonrpc": "2.0",
+//   "id": 0,
+//   "method": "eth_getLogs",
+//   "params": [
+//       {
+//           "fromBlock": "0x9d3981",
+//           "address": "0x511103EE939859971B00F240c7865e1885EbC825",
+//           "topics": ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"]
+//       }
+//   ]
+// }
 
 // const filterArray = chainAccountContract.filters.Transfer(
 //   sender,
