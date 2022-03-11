@@ -1,2 +1,2 @@
 web: npm start
-web: npm run start-listener
+worker: npm run start-listener
