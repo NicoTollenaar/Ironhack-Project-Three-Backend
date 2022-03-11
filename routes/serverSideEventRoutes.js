@@ -9,7 +9,7 @@ router.get("/events", eventHandler);
 async function eventHandler(request, response) {
   const headers = {
     "Content-Type": "text/event-stream",
-    Connection: "keep-alive",
+    "Connection": "keep-alive",
     "Cache-Control": "no-cache",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Credentials": "true",
