@@ -1,3 +1,4 @@
+const sha256 = require("crypto-js/sha256");
 const router = require("express").Router();
 const Accountholder = require("../models/Accountholder.model");
 const Account = require("../models/Account.model");
@@ -92,7 +93,7 @@ router.post(
           ).populate("accountholder");
         }
       } else {
-        txHash = "0x";
+        txHash = sha256(Date.now());
         dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
           { address: recipientAccountAddress },
           { $inc: { balance: transferAmount } },

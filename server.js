@@ -1,16 +1,23 @@
-require("dotenv").config({ path: "../.env" });
+require("dotenv").config({ path: "./../.env" });
 const cors = require("cors");
 const express = require("express");
 const app = express();
 const morgan = require("morgan");
 require("./db/connectDatabase");
-const PORT = process.env.PORT || 80;
+const PORT = process.env.PORT || 4001;
+
+// app.use(
+//   cors({
+//     credentials: true,
+//     origin:
+//       process.env.ORIGIN || "http://localhost:3000",
+//   })
+// );
 
 app.use(
   cors({
     credentials: true,
-    origin:
-      process.env.ORIGIN || `http://localhost:${process.env.LOCALHOST_PORT_REACT_APP}`,
+    origin: "*",
   })
 );
 
@@ -30,8 +37,12 @@ app.use("/", accountRoutes);
 const serverSideEventRoutes = require("./routes/serverSideEventRoutes");
 app.use("/", serverSideEventRoutes);
 
-app.listen(PORT, () => {
+app.listen(PORT, (err) => {
   console.log(
     `Express server running, listening on PORT ${PORT} ...`
   );
+  if (err) { 
+    console.log("ERROR IN EXPRESS SERVER");
+    throw err;
+  }
 });

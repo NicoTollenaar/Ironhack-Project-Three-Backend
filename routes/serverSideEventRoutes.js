@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const Transaction = require("./../models/Transaction.model");
 const Account = require("./../models/Account.model");
-const ETHAddressBank = require("./../utils/constants");
+const { ETHAddressBank } = require("./../utils/constants");
 let serverSentEvent = {};
 
 router.get("/events", eventHandler);
@@ -25,6 +25,10 @@ async function blockchainEventHandler(req, res, next) {
   console.log(
     "In blockchainhandler, logging recipientAddress: ",
     recipientAddress
+  );
+  console.log(
+    "In blockchainhandler, logging ETHAddressBank: ",
+    ETHAddressBank, (recipientAddress === ETHAddressBank)
   );
   try {
     const dbTransaction = await Transaction.findOne({ txHash });

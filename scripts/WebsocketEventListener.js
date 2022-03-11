@@ -102,12 +102,12 @@ async function main() {
             responseFromBackEnd.data
           );
         } catch (error) {
-          console.log("In websocket file, catch block, logging error: ", error);
+          console.log("In websocket file, catch block, logging error: ", error.response);
         }
       }
     );
   } catch (error) {
-    console.log("In websocket file, catch block, logging error: ", error);
+    console.log("In websocket file, catch block, logging error: ", error.response);
   }
 }
 
