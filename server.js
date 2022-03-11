@@ -12,6 +12,11 @@ app.use(function(req, res, next) {
 next();
 });
 
+
+console.log("............");
+console.log(process.env.ORIGIN);
+console.log("............");
+
 app.use(
   cors({
     credentials: true,
