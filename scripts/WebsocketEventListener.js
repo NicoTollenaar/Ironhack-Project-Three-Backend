@@ -1,4 +1,4 @@
-const { default: axios } = require("axios");
+const axios = require("axios").default;
 const { ethers } = require("ethers");
 const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
 const {
