@@ -7,17 +7,13 @@ let serverSentEvent = {};
 router.get("/events", eventHandler);
 
 function eventHandler(request, response) {
-  response.json({"msg": success});
-
-  // const headers = {
-  //   "Content-Type": "text/event-stream",
-  //   "Connection": "keep-alive",
-  //   "Cache-Control": "no-cache",
-  //   "Access-Control-Allow-Origin": "*",
-  //   "Access-Control-Allow-Credentials": "true",
-  // };
-  // response.writeHead(200, headers);
-  // serverSentEvent = response;
+  const headers = {
+    "Content-Type": "text/event-stream",
+    "Connection": "keep-alive",
+    "Cache-Control": "no-cache",
+  };
+  response.writeHead(200, headers);
+  serverSentEvent = response;
 }
 
 router.post("/blockchain-events", blockchainEventHandler);
