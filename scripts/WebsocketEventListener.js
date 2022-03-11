@@ -41,34 +41,7 @@ async function main() {
 
     // TRYING FOR ALCHEMY/RINKEBY:
 
-    const response = await axios.post(providerUrl, {
-      jsonrpc: "2.0",
-      id: "0",
-      method: "eth_blockNumber",
-    });
-
-    const blockNumber = response.data.result;
-
-    console.log("response.data, block number: ", response.data, blockNumber);
-
-    const previousBlock = `0x${(Number(blockNumber) - 1).toString(16)}`;
-
-    console.log("previous block: ", previousBlock, typeof previousBlock);
-
-    const request = {
-      jsonrpc: "2.0",
-      id: "0",
-      method: "eth_getLogs",
-      params: [
-        {
-          fromBlock: previousBlock,
-          address: "0x511103EE939859971B00F240c7865e1885EbC825",
-          topics: [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-          ],
-        },
-      ],
-    };
+    
 
     chainAccountContract.on(
       "Transfer",
@@ -80,6 +53,36 @@ async function main() {
         console.log("topic: ", topic);
 
         try {
+
+          const response = await axios.post(providerUrl, {
+            jsonrpc: "2.0",
+            id: "0",
+            method: "eth_blockNumber",
+          });
+      
+          const blockNumber = response.data.result;
+      
+          console.log("response.data, block number: ", response.data, blockNumber);
+      
+          const previousBlock = `0x${(Number(blockNumber) - 1).toString(16)}`;
+      
+          console.log("previous block: ", previousBlock, typeof previousBlock);
+      
+          const request = {
+            jsonrpc: "2.0",
+            id: "0",
+            method: "eth_getLogs",
+            params: [
+              {
+                fromBlock: previousBlock,
+                address: "0x511103EE939859971B00F240c7865e1885EbC825",
+                topics: [
+                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                ],
+              },
+            ],
+          };
+
           const responseFromProvider = await axios.post(providerUrl, request);
           console.log(
             "axios response.data from blockchain provider, get_Logs (with txHash): ",

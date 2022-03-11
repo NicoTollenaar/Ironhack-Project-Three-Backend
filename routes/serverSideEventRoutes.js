@@ -23,8 +23,8 @@ router.post("/blockchain-events", blockchainEventHandler);
 async function blockchainEventHandler(req, res, next) {
   const { senderAddress, recipientAddress, amount, txHash } = req.body;
   console.log(
-    "In blockchainhandler, logging recipientAddress: ",
-    recipientAddress
+    "In blockchainhandler, logging recipientAddress: req.body :",
+    req.body
   );
   console.log(
     "In blockchainhandler, logging ETHAddressBank: ",

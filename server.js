@@ -13,15 +13,12 @@ next();
 });
 
 
-console.log("............");
-console.log(process.env.ORIGIN);
-console.log("............");
-
 app.use(
   cors({
     credentials: true,
     origin:
       process.env.ORIGIN || "http://localhost:3000",
+    allowheaders: ["Origin, X-Requested-With, Content-Type, Accept"],
   })
 );
 
