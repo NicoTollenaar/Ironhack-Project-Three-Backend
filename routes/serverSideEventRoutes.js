@@ -6,7 +6,7 @@ let serverSentEvent = {};
 
 router.get("/events", eventHandler);
 
-async function eventHandler(request, response) {
+function eventHandler(request, response) {
   const headers = {
     "Content-Type": "text/event-stream",
     "Connection": "keep-alive",
