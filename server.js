@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 4001;
 
 app.use(
   cors({
-    origin: "https://chainaccount.netlify.app",
+    origin: ["https://chainaccount.netlify.app"],
   })
 );
 
