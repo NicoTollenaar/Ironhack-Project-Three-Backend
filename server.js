@@ -14,11 +14,6 @@ const PORT = process.env.PORT || 4001;
 //   })
 // );
 
-app.use(
-  cors({
-    origin: ["https://chainaccount.netlify.app"],
-  })
-);
 
 app.use(morgan("dev"));
 
@@ -28,10 +23,21 @@ app.use(express.text());
 app.use(express.static("./public"));
 
 const authRoutes = require("./routes/authRoutes.js");
-app.use("/", authRoutes);
+app.use(
+  "/",   
+  cors({
+    origin: ["https://chainaccount.netlify.app"],
+  }), 
+  authRoutes
+);
 
 const accountRoutes = require("./routes/accountRoutes");
-app.use("/", accountRoutes);
+app.use(
+  "/",
+  cors({
+    origin: ["https://chainaccount.netlify.app"],
+  }),  
+  accountRoutes);
 
 const serverSideEventRoutes = require("./routes/serverSideEventRoutes");
 app.use("/", serverSideEventRoutes);
