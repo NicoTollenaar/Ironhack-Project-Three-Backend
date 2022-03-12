@@ -1,3 +1,4 @@
+require("dotenv").config({ path: "./../../.env" });
 const router = require("express").Router();
 const Transaction = require("./../models/Transaction.model");
 const Account = require("./../models/Account.model");
@@ -11,7 +12,7 @@ function eventHandler(request, response) {
     "Content-Type": "text/event-stream",
     "Connection": "keep-alive",
     "Cache-Control": "no-cache",
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
     "Access-Control-Allow-Credentials": "true",
   };
   response.writeHead(200, headers);
