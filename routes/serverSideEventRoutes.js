@@ -23,7 +23,7 @@ function eventHandler(request, setHeaders, response) {
   serverSentEvent = response;
 }
 
-function setHeaders(){
+function setHeaders(response, request, next) {
   response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   const headers = {
