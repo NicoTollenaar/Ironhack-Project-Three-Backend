@@ -24,16 +24,8 @@ function eventHandler(request, response, next) {
 }
 
 function setHeaders (request, response, next) {
-  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  const headers = {
-    "Content-Type": "text/event-stream",
-    "Connection": "keep-alive",
-    "Cache-Control": "no-cache",
-    "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
-    "Access-Control-Allow-Credentials": "true",
-  };
-  response.writeHead(200, headers);
+  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
   console.log("MIDDLEWARE SETHEADERS, response.getHeaders(): ", response.getHeaders());
   next();
 }
