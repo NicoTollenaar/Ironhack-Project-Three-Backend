@@ -15,6 +15,7 @@ function eventHandler(request, response) {
     "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
     "Access-Control-Allow-Credentials": "true",
   };
+  console.log("EVENT HANDLER CALLED, LOGGING HEADERS: ", headers);
   response.writeHead(200, headers);
   serverSentEvent = response;
 }
@@ -85,6 +86,15 @@ async function blockchainEventHandler(req, res, next) {
 }
 
 function sendToClient(dataObject) {
+  const headers = {
+    "Content-Type": "text/event-stream",
+    "Connection": "keep-alive",
+    "Cache-Control": "no-cache",
+    "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
+    "Access-Control-Allow-Credentials": "true",
+  };
+  console.log("SENT TO CLIENT FUNCTION CALLED, LOGGING HEADERS: ", headers);
+  response.writeHead(200, headers);
   serverSentEvent.write(`data: ${JSON.stringify(dataObject)}\n\n`);
 }
 
