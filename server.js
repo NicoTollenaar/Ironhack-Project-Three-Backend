@@ -18,7 +18,7 @@ app.use(
     credentials: true,
     origin:
       process.env.ORIGIN || "http://localhost:3000",
-    allowheaders: ["Origin, X-Requested-With, Content-Type, Accept"],
+    allowheaders: ["Origin, X-Requested-With, Content-Type, Accept", "Authorization" ],
   })
 );
 
