@@ -5,36 +5,22 @@ const Account = require("./../models/Account.model");
 const { ETHAddressBank } = require("./../utils/constants");
 let serverSentEvent = {};
 
-router.get("/events", eventHandler);
+router.get("/events", setHeaders, eventHandler);
 
 function eventHandler(request, response, next) {
-
-  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
-  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  const headers = {
-    "Content-Type": "text/event-stream",
-    "Connection": "keep-alive",
-    "Cache-Control": "no-cache",
-    "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
-    "Access-Control-Allow-Credentials": "true",
-  };
   serverSentEvent = response;
-  console.log("EVENT HANDLER CALLED, response.getHeaders(): ", response.getHeaders());
+  console.log("EVENT HANDLER CALLED, logging response.getHeaders(): ", response.getHeaders());
   return response.writeHead(200, headers);
 }
 
-router.post("/blockchain-events", blockchainEventHandler);
+router.post("/blockchain-events", setHeaders, blockchainEventHandler);
 
 async function blockchainEventHandler(req, res, next) {
   const { senderAddress, recipientAddress, amount, txHash } = req.body;
+  
   console.log(
-    "In blockchainhandler, logging recipientAddress: req.body :",
-    req.body
-  );
-  console.log(
-    "In blockchainhandler, logging ETHAddressBank: ",
-    ETHAddressBank, (recipientAddress === ETHAddressBank)
-  );
+    "In blockchainhandler, logging res.getHeaders() :", res.getHeaders());
+
   try {
     const dbTransaction = await Transaction.findOne({ txHash });
     if (
@@ -91,6 +77,18 @@ async function blockchainEventHandler(req, res, next) {
 function sendToClient(dataObject) {
   console.log("in SEND TO CLIENT, logging serverSentEvent.getHeaders(): ", serverSentEvent.getHeaders());
   return serverSentEvent.write(`data: ${JSON.stringify(dataObject)}\n\n`);
+}
+
+function setHeaders(request, response, next) {
+  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
+  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  const headers = {
+    "Content-Type": "text/event-stream",
+    "Connection": "keep-alive",
+    "Cache-Control": "no-cache",
+    "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
+    "Access-Control-Allow-Credentials": "true",
+  };
 }
 
 module.exports = router;
