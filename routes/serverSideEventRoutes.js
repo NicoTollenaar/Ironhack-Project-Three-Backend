@@ -7,7 +7,7 @@ let serverSentEvent = {};
 
 router.get("/events", eventHandler);
 
-function eventHandler(request, response) {
+function eventHandler(request, setHeaders, response) {
 
   response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -22,6 +22,22 @@ function eventHandler(request, response) {
   console.log("EVENT HANDLER CALLED, response.getHeaders(): ", response.getHeaders());
   serverSentEvent = response;
 }
+
+function setHeaders(){
+  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
+  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  const headers = {
+    "Content-Type": "text/event-stream",
+    "Connection": "keep-alive",
+    "Cache-Control": "no-cache",
+    "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
+    "Access-Control-Allow-Credentials": "true",
+  };
+  response.writeHead(200, headers);
+  console.log("MIDDLEWARE SETHEADERS, response.getHeaders(): ", response.getHeaders());
+  next();
+}
+
 
 router.post("/blockchain-events", blockchainEventHandler);
 
