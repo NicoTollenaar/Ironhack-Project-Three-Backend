@@ -5,9 +5,9 @@ const Account = require("./../models/Account.model");
 const { ETHAddressBank } = require("./../utils/constants");
 let serverSentEvent = {};
 
-router.get("/events", eventHandler);
+router.get("/events", setHeaders, eventHandler);
 
-function eventHandler(request, setHeaders, response) {
+function eventHandler(request, response, next) {
 
   response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -23,7 +23,7 @@ function eventHandler(request, setHeaders, response) {
   serverSentEvent = response;
 }
 
-function setHeaders(response, request, next) {
+function setHeaders (request, response, next) {
   response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   const headers = {
@@ -37,7 +37,6 @@ function setHeaders(response, request, next) {
   console.log("MIDDLEWARE SETHEADERS, response.getHeaders(): ", response.getHeaders());
   next();
 }
-
 
 router.post("/blockchain-events", blockchainEventHandler);
 
