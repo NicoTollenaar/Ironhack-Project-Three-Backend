@@ -5,7 +5,7 @@ const Account = require("./../models/Account.model");
 const { ETHAddressBank } = require("./../utils/constants");
 let serverSentEvent = {};
 
-router.get("/events", setHeaders, eventHandler);
+router.get("/events", eventHandler);
 
 function eventHandler(request, response, next) {
 
@@ -18,16 +18,9 @@ function eventHandler(request, response, next) {
     "Access-Control-Allow-Origin": process.env.ORIGIN || "http://localhost:3000",
     "Access-Control-Allow-Credentials": "true",
   };
-  response.writeHead(200, headers);
-  console.log("EVENT HANDLER CALLED, response.getHeaders(): ", response.getHeaders());
   serverSentEvent = response;
-}
-
-function setHeaders (request, response, next) {
-  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
-  console.log("MIDDLEWARE SETHEADERS, response.getHeaders(): ", response.getHeaders());
-  next();
+  console.log("EVENT HANDLER CALLED, response.getHeaders(): ", response.getHeaders());
+  return response.writeHead(200, headers);
 }
 
 router.post("/blockchain-events", blockchainEventHandler);
@@ -97,7 +90,7 @@ async function blockchainEventHandler(req, res, next) {
 
 function sendToClient(dataObject) {
   console.log("in SEND TO CLIENT, logging serverSentEvent.getHeaders(): ", serverSentEvent.getHeaders());
-  serverSentEvent.write(`data: ${JSON.stringify(dataObject)}\n\n`);
+  return serverSentEvent.write(`data: ${JSON.stringify(dataObject)}\n\n`);
 }
 
 module.exports = router;
