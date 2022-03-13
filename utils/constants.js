@@ -19,7 +19,6 @@ const ETHAddressBank = "0x03F04fDa3B6E6FA1783A5EDB810155e5F4dD5461";
 const backendUrlConstant = process.env.CHAINACCOUNT_API || "http://localhost:4001";
 
 
-
 module.exports = {
   providerUrl: alchemyRinkebyUrl,
   chainAccountContractAddress: contractAddressOnRinkeby,

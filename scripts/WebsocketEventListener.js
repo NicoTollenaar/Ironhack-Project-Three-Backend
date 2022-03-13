@@ -54,6 +54,8 @@ async function main() {
 
         try {
 
+          // below is code to get previous block (in case transaction is not on "latest", but makes it very slow causing timeout by Heroku)
+
           const response = await axios.post(providerUrl, {
             jsonrpc: "2.0",
             id: "0",
@@ -62,12 +64,10 @@ async function main() {
       
           const blockNumber = response.data.result;
       
-          console.log("response.data, block number: ", response.data, blockNumber);
-      
           const previousBlock = `0x${(Number(blockNumber) - 1).toString(16)}`;
-      
-          console.log("previous block: ", previousBlock, typeof previousBlock);
-      
+
+      //  **********
+
           const request = {
             jsonrpc: "2.0",
             id: "0",
@@ -105,12 +105,12 @@ async function main() {
             responseFromBackEnd.data
           );
         } catch (error) {
-          console.log("In websocket file, catch block, logging error: ", error.response);
+          console.log("In websocket file, catch block 1, logging error: ", error );
         }
       }
     );
   } catch (error) {
-    console.log("In websocket file, catch block, logging error: ", error.response);
+    console.log("In websocket file, catch block 2, logging error: ", error );
   }
 }
 
