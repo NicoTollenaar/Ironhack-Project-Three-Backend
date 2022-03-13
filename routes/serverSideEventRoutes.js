@@ -8,7 +8,6 @@ let serverSentEvent = {};
 router.get("/events", eventHandler);
 
 function eventHandler(request, response, next) {
-  serverSentEvent = response;
   const headers = {
     "Content-Type": "text/event-stream",
     "Connection": "keep-alive",
@@ -17,13 +16,14 @@ function eventHandler(request, response, next) {
     "Access-Control-Allow-Credentials": "true",
   };
   response.writeHead(200, headers);
+  serverSentEvent = response;
 }
 
 router.post("/blockchain-events", blockchainEventHandler);
 
 async function blockchainEventHandler(req, res, next) {
   const start = Date.now();
-  console.log("In blockchain event handlder, logging start time:  lapsed: ", start);
+  console.log("In blockchain event handlder, logging start time:", start);
 
   const { senderAddress, recipientAddress, amount, txHash } = req.body;
   
@@ -53,12 +53,6 @@ async function blockchainEventHandler(req, res, next) {
         { new: true }
       ).populate("accountholder");
 
-      console.log(
-        "In serversideroute, logging dbUpdatedRecipientAccount and dbUpdatedFromAccount",
-        dbUpdatedRecipientAccount,
-        dbUpdatedFromAccount
-      );
-
       const fromAccountId = dbUpdatedFromAccount.accountholder;
       const toAccountId = dbUpdatedRecipientAccount.accountholder;
 
@@ -68,31 +62,31 @@ async function blockchainEventHandler(req, res, next) {
         amount,
         txHash,
       });
-      res.json({ dbUpdatedFromAccount, dbNewTransaction });
-      return sendToClient({
+      const dataToClient = {
         dbUpdatedFromAccount,
         dbUpdatedRecipientAccount,
         dbNewTransaction,
-      });
+      };
+      serverSentEvent.write(`data: ${JSON.stringify(dataToClient)}\n\n`);
+      res.status(200).json({ dbUpdatedFromAccount, dbNewTransaction });
       console.log("In blockchain event handlder, logging time lapsed: ", Date.now() - start);
     }
   } catch (error) {
     console.log(error);
+    return res.status(500).json({errorMessage: "Message from server (serverside route): in catch block, something went wrong"});
   }
 }
 
-function sendToClient(dataObject) {
-  return serverSentEvent.write(`data: ${JSON.stringify(dataObject)}\n\n`);
-}
-
-function setHeaders(request, response, next) {
-
-  response.header("Content-Type", "text/event-stream");
-  response.header("Connection", "keep-alive");
-  response.header("Cache-Control", "no-cache");
-  response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
-  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-}
 
 module.exports = router;
+
+
+// function setHeaders(request, response, next) {
+
+  //   response.header("Content-Type", "text/event-stream");
+  //   response.header("Connection", "keep-alive");
+  //   response.header("Cache-Control", "no-cache");
+  //   response.header("Access-Control-Allow-Origin", process.env.ORIGIN || "http://localhost:3000");
+  //   response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  //   next();
+  // }

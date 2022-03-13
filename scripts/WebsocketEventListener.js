@@ -101,7 +101,7 @@ async function main() {
           const backendUrl = `${backendUrlConstant}/blockchain-events`;
           const responseFromBackEnd = await axios.post(backendUrl, body);
           console.log(
-            "In websocketProvider, logging response from backend (returning body): ",
+            "In websocketProvider, logging response from backend (returning updated accounts and new transaction): ",
             responseFromBackEnd.data
           );
         } catch (error) {
