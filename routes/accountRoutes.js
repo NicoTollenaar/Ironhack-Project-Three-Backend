@@ -1,4 +1,4 @@
-const sha256 = require("crypto-js/sha256");
+const { createHash }  = require("crypto");
 const router = require("express").Router();
 const Accountholder = require("../models/Accountholder.model");
 const Account = require("../models/Account.model");
@@ -93,7 +93,7 @@ router.post(
           ).populate("accountholder");
         }
       } else {
-        txHash = sha256(Date.now());
+        txHash = createHash('sha256').update(Date.now().toString()).digest('hex');
         dbUpdatedRecipientAccount = await Account.findOneAndUpdate(
           { address: recipientAccountAddress },
           { $inc: { balance: transferAmount } },
@@ -106,6 +106,13 @@ router.post(
         { $inc: { balance: -transferAmount } },
         { new: true }
       ).populate("accountholder");
+
+      const dbData =  {
+        fromAccountId,
+        toAccountId: dbUpdatedRecipientAccount._id,
+        amount: transferAmount,
+        txHash,
+      }
 
       dbNewTransaction = await Transaction.create({
         fromAccountId,
@@ -141,7 +148,6 @@ router.post(
   "/transfer/from-on-chain-account",
   isAuthenticated,
   async (req, res, next) => {
-    console.log("Arrived in transfer/from-on-chain-account");
     const {
       fromAccountId,
       transferAmount,
@@ -362,13 +368,6 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
       txHash,
     });
 
-    console.log(
-      "In accountroute/move-funds-on-chain, logging what is returned to front end (modal form), dbUpdateFromAccount, dbUpdatedRecipientAccount, dbNewTransaction: ",
-      dbUpdatedFromAccount,
-      dbUpdatedRecipientAccount,
-      dbNewTransaction
-    );
-
     if (dbUpdatedFromAccount && dbUpdatedRecipientAccount && dbNewTransaction) {
       res.json({
         dbUpdatedFromAccount,
@@ -392,7 +391,6 @@ router.post("/move-on-chain", isAuthenticated, async (req, res, next) => {
 });
 
 router.post("/move-off-chain", isAuthenticated, async (req, res, next) => {
-  console.log("Just arrived in move-off-chain route, passed middleware");
   let dbUpdatedFromAccount;
   let dbUpdatedRecipientAccount;
   try {
@@ -404,8 +402,6 @@ router.post("/move-off-chain", isAuthenticated, async (req, res, next) => {
       recipientAccountAddress,
       txHash,
     } = req.body;
-
-    console.log("In move-off-chain route, logging req.body: ", req.body);
 
     if (
       !txHash ||
