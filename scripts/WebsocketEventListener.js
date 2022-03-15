@@ -16,12 +16,21 @@ console.log(
 
 let client = {};
 
-wss.on("connection", function(connection){
+wss.on("connection", function(connection, request){
   client = connection;
   console.log("Client websocket connection established");
+  const intervalId = setInterval(()=>{
+    client.send("ping");
+  }, 28000);
+  // client.on("message", function(message){
+  //   if (message.toString() === "pong") {
+  //     console.log(message.toString());
+  //   }
+  // });
 });
 
 async function WebSocketEventListener() {
+
   const start = Date.now();
   console.log("In websocketeventlistener, logging start time:", start); 
 
@@ -73,7 +82,7 @@ async function WebSocketEventListener() {
       
           const blockNumber = response.data.result;
       
-          const previousBlock = `0x${(Number(blockNumber) - 1).toString(16)}`;
+          const previousBlock = `0x${(Number(blockNumber) - 5).toString(16)}`;
 
       //  **********
 
@@ -117,7 +126,6 @@ async function WebSocketEventListener() {
             senderAddress !== ETHAddressBank 
           ) {
           const updatedDatabaseInfo = await writeToDatabase(data);
-          console.log("In writeToDatabase, logging client.readyState: ", client.readyState);
           
             if (client.readyState === 1) {
               client.send(JSON.stringify(updatedDatabaseInfo));
