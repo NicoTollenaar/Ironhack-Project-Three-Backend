@@ -4,15 +4,26 @@ const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
 const {
   providerUrl,
   chainAccountContractAddress,
-  backendUrlConstant,
   websocketConnectionAlchemyRinkeby,
+  ETHAddressBank
 } = require("../utils/constants");
+const wss = require("./../server");
+const writeToDatabase = require("./writeBlockChainEventToDatabase");
+
 console.log(
   "Websocket provider running, listening for events on blockchain ..."
 );
 
-async function main() {
-  // http also works instead of websocketconnection
+let client = {};
+
+wss.on("connection", function(connection){
+  client = connection;
+  console.log("Client websocket connection established");
+});
+
+async function WebSocketEventListener() {
+  const start = Date.now();
+  console.log("In websocketeventlistener, logging start time:", start); 
 
   const webSocketProvider = new ethers.providers.WebSocketProvider(
     websocketConnectionAlchemyRinkeby
@@ -40,8 +51,6 @@ async function main() {
     // };
 
     // TRYING FOR ALCHEMY/RINKEBY:
-
-    
 
     chainAccountContract.on(
       "Transfer",
@@ -91,21 +100,36 @@ async function main() {
 
           const lastTransaction = responseFromProvider.data.result.slice(-1)[0];
 
-          const body = {
+          const newBalanceSender = await chainAccountContract.balanceOf(senderAddress);
+          const newBalanceRecipient = await chainAccountContract.balanceOf(recipientAddress);
+
+          const data = {
             senderAddress,
             recipientAddress,
+            newBalanceSender: Number(newBalanceSender / 100),
+            newBalanceRecipient: Number(newBalanceRecipient / 100),
             amount: amount.toString() / 100,
             txHash: lastTransaction.transactionHash,
           };
 
-          const backendUrl = `${backendUrlConstant}/blockchain-events`;
-          const responseFromBackEnd = await axios.post(backendUrl, body);
-          console.log(
-            "In websocketProvider, logging response from backend (returning updated accounts and new transaction): ",
-            responseFromBackEnd.data
-          );
+          if (
+            recipientAddress !== ETHAddressBank &&
+            senderAddress !== ETHAddressBank 
+          ) {
+          const updatedDatabaseInfo = await writeToDatabase(data);
+          console.log("In writeToDatabase, logging client.readyState: ", client.readyState);
+          
+            if (client.readyState === 1) {
+              client.send(JSON.stringify(updatedDatabaseInfo));
+            } else {
+              throw new Error("websocket connection failed, could not send data")
+            }
+          
+        }
+          console.log("In writeToDatabase, logging time lapsed: ", Date.now() - start);
+
         } catch (error) {
-          console.log("In websocket file, catch block 1, logging error: ", error );
+          console.log("In websocket file, catch block 1, logging error: ", error);
         }
       }
     );
@@ -114,9 +138,9 @@ async function main() {
   }
 }
 
-main();
+WebSocketEventListener();
 
-module.exports = main;
+module.exports = WebSocketEventListener;
 
 // this works on postman
 
