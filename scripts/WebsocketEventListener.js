@@ -9,6 +9,7 @@ const {
 } = require("../utils/constants");
 const wss = require("./../server");
 const writeToDatabase = require("./writeBlockChainEventToDatabase");
+const Transaction = require("./../models/Transaction.model");
 
 console.log(
   "Websocket provider running, listening for events on blockchain ..."
@@ -18,15 +19,19 @@ let client = {};
 
 wss.on("connection", function(connection, request){
   client = connection;
-  console.log("Client websocket connection established");
+  console.log("SERVER: websocket connection established");
   const intervalId = setInterval(()=>{
     client.send("ping");
-  }, 28000);
-  // client.on("message", function(message){
-  //   if (message.toString() === "pong") {
-  //     console.log(message.toString());
-  //   }
-  // });
+  }, 25000);
+  client.on("message", function(message){
+    if (message.toString() === "pong") {
+      console.log(message.toString());
+    }
+  });
+  client.on("close", () => {
+    clearInterval(intervalId);
+    console.log("SERVER: connection closed.");
+  });
 });
 
 async function WebSocketEventListener() {
@@ -70,74 +75,81 @@ async function WebSocketEventListener() {
         console.log("amount: ", amount.toString() / 100);
         console.log("topic: ", topic);
 
-        try {
+        if (
+          recipientAddress === ETHAddressBank ||
+          senderAddress === ETHAddressBank 
+        ) {
+          console.log("In websocketeventlistener, transfer to or from ETH address bank, returning");
+          return;
+        } else {
+          try {
 
           // below is code to get previous block (in case transaction is not on "latest", but makes it very slow causing timeout by Heroku)
 
-          const response = await axios.post(providerUrl, {
-            jsonrpc: "2.0",
-            id: "0",
-            method: "eth_blockNumber",
-          });
+            const response = await axios.post(providerUrl, {
+              jsonrpc: "2.0",
+              id: "0",
+              method: "eth_blockNumber",
+            });
       
-          const blockNumber = response.data.result;
+            const blockNumber = response.data.result;
       
-          const previousBlock = `0x${(Number(blockNumber) - 5).toString(16)}`;
+            const fiveBlocksEarlier = `0x${(Number(blockNumber) - 5).toString(16)}`;
 
-      //  **********
+            //  **********
 
-          const request = {
-            jsonrpc: "2.0",
-            id: "0",
-            method: "eth_getLogs",
-            params: [
-              {
-                fromBlock: previousBlock,
-                address: "0x511103EE939859971B00F240c7865e1885EbC825",
-                topics: [
-                  "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-                ],
-              },
-            ],
-          };
+            const request = {
+              jsonrpc: "2.0",
+              id: "0",
+              method: "eth_getLogs",
+              params: [
+                {
+                  fromBlock: fiveBlocksEarlier,
+                  address: chainAccountContractAddress,
+                  topics: [topic],
+                },
+              ],
+            };
 
-          const responseFromProvider = await axios.post(providerUrl, request);
-          console.log(
-            "axios response.data from blockchain provider, get_Logs (with txHash): ",
-            responseFromProvider.data
-          );
+            const responseFromProvider = await axios.post(providerUrl, request);
+            console.log(
+              "axios response.data from blockchain provider, get_Logs (with txHash): ",
+              responseFromProvider.data
+            );
 
-          const lastTransaction = responseFromProvider.data.result.slice(-1)[0];
+            const lastTransaction = responseFromProvider.data.result.slice(-1)[0];
 
-          const newBalanceSender = await chainAccountContract.balanceOf(senderAddress);
-          const newBalanceRecipient = await chainAccountContract.balanceOf(recipientAddress);
-
-          const data = {
-            senderAddress,
-            recipientAddress,
-            newBalanceSender: Number(newBalanceSender / 100),
-            newBalanceRecipient: Number(newBalanceRecipient / 100),
-            amount: amount.toString() / 100,
-            txHash: lastTransaction.transactionHash,
-          };
-
-          if (
-            recipientAddress !== ETHAddressBank &&
-            senderAddress !== ETHAddressBank 
-          ) {
-          const updatedDatabaseInfo = await writeToDatabase(data);
+            const dbTransaction = await Transaction.findOne({ txHash: lastTransaction.txHash });
           
-            if (client.readyState === 1) {
-              client.send(JSON.stringify(updatedDatabaseInfo));
-            } else {
-              throw new Error("websocket connection failed, could not send data")
+            if (dbTransaction) {
+              console.log("In websocketeventlistener: database already updated, logging dbTransaction and returning: ", dbTransaction);
+              return;
+            } else if (!dbTransaction) {
+         
+              const newBalanceSender = await chainAccountContract.balanceOf(senderAddress);
+              const newBalanceRecipient = await chainAccountContract.balanceOf(recipientAddress);
+
+              const data = {
+                senderAddress,
+                recipientAddress,
+                newBalanceSender: Number(newBalanceSender / 100),
+                newBalanceRecipient: Number(newBalanceRecipient / 100),
+                amount: amount.toString() / 100,
+                txHash: lastTransaction.transactionHash,
+              };
+           
+              const updatedDatabaseInfo = await writeToDatabase(data);
+              
+              if (client.readyState === 1) {
+                client.send(JSON.stringify(updatedDatabaseInfo));
+              } else {
+                throw new Error("websocket connection failed, could not send data")
+              }
+        
             }
-          
-        }
-          console.log("In writeToDatabase, logging time lapsed: ", Date.now() - start);
-
-        } catch (error) {
+          } catch (error) {
           console.log("In websocket file, catch block 1, logging error: ", error);
+          }
         }
       }
     );
@@ -211,4 +223,4 @@ module.exports = WebSocketEventListener;
 //   });
 
 //   console.log("log: ", log);
-//   console.log("deployedEvent: ", deployedEvent);
+  // console.log("deployedEvent: ", deployedEvent);

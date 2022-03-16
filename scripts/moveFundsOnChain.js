@@ -10,6 +10,7 @@ const {
 } = require("../utils/constants");
 
 async function moveFundsOnChain(onChainAddress, amount) {
+
   let provider;
 
   if (network === "rinkeby") {
@@ -23,11 +24,20 @@ async function moveFundsOnChain(onChainAddress, amount) {
     throw new Error("Network undefined, could not establish a provider");
   }
 
+  console.log("In move funds on chain, logging network and providerUrl: ", network, providerUrl);
+  console.log("In move funds on chain, logging provider: ", provider);
+
   const bankSigner = new ethers.Wallet(privateKeyBank, provider);
+
+  console.log("In move funds on chain, logging bankSigner: ", bankSigner);
+
 
   try {
     const accounts = await provider.listAccounts();
     // const bankSigner = provider.getSigner(0); //using default signer as bank signer
+
+  console.log("In move funds on chain, logging accounts: ", accounts);
+
 
     console.log("\nTransactions being mined, please wait ...");
     const chainAccountContract = new ethers.Contract(
@@ -35,6 +45,9 @@ async function moveFundsOnChain(onChainAddress, amount) {
       abi,
       provider
     );
+
+  console.log("In move funds on chain, logging chainAccountContract: ", chainAccountContract);
+
 
     const name = await chainAccountContract.connect(bankSigner).name();
     const symbol = await chainAccountContract.connect(bankSigner).symbol();
