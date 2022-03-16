@@ -4,15 +4,24 @@ const fs = require("fs");
 const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
 const {
   chainAccountContractAddress,
+  network,
   providerUrl,
   privateKeyBank,
 } = require("../utils/constants");
 
 async function moveFundsOnChain(onChainAddress, amount) {
-  const provider = new ethers.providers.AlchemyProvider(
-    "rinkeby",
-    process.env.ALCHEMY_API_KEY
-  );
+  let provider;
+
+  if (network === "rinkeby") {
+    provider = new ethers.providers.AlchemyProvider(
+      network,
+      process.env.ALCHEMY_API_KEY
+    );
+  } else if (network === "ganache") {
+    provider = ethers.getDefaultProvider(providerUrl);
+  } else {
+    throw new Error("Network undefined, could not establish a provider");
+  }
 
   const bankSigner = new ethers.Wallet(privateKeyBank, provider);
 

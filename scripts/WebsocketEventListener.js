@@ -4,7 +4,7 @@ const { abi } = require("./../blockchainSources/ChainAccountArtifacts");
 const {
   providerUrl,
   chainAccountContractAddress,
-  websocketConnectionAlchemyRinkeby,
+  wssProviderUri,
   ETHAddressBank
 } = require("../utils/constants");
 const wss = require("./../server");
@@ -35,7 +35,7 @@ async function WebSocketEventListener() {
   console.log("In websocketeventlistener, logging start time:", start); 
 
   const webSocketProvider = new ethers.providers.WebSocketProvider(
-    websocketConnectionAlchemyRinkeby
+    wssProviderUri
   );
 
   const chainAccountContract = new ethers.Contract(

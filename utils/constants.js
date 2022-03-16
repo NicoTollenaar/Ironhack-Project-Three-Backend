@@ -18,13 +18,21 @@ const privateKeyBank = process.env.PRIVATE_KEY_BANK_GANACHE_RINKEBY || process.e
 const ETHAddressBank = "0x03F04fDa3B6E6FA1783A5EDB810155e5F4dD5461";
 const backendUrlConstant = process.env.CHAINACCOUNT_API || "http://localhost:4001";
 
+const providerUrl = process.env.ALCHEMY_RINKEBY_URL || ganacheUrl;
+
+const chainAccountContractAddress = process.env.CONTRACT_ADDRESS_ON_RINKEBY || contractAddressOnGanache;
+
+const wssProviderUri = process.env.WSS_ALCHEMY_RINKEBY || "ws://localhost:7545";
+
+const network = process.env.NETWORK || "ganache";
 
 module.exports = {
-  providerUrl: alchemyRinkebyUrl,
-  chainAccountContractAddress: contractAddressOnRinkeby,
-  mongoDb: mongoDb,
+  providerUrl,
+  chainAccountContractAddress,
+  mongoDb,
   ETHAddressBank,
   privateKeyBank,
   backendUrlConstant,
-  websocketConnectionAlchemyRinkeby,
+  wssProviderUri,
+  network,
 };
