@@ -9,13 +9,41 @@ const Transaction = require("./../models/Transaction.model");
 
 router.get("/accounts", isAuthenticated, async (req, res, next) => {
   try {
-    const dbAccounts = await Account.find().populate("accountholder");
-    console.log("In GET /accounts route, logging dbAccounts, :", dbAccounts);
-    res.json(dbAccounts);
+    const dbAccountholders = await Accountholder.find().populate("onChainAccount").populate("offChainAccount");
+    console.log("In GET /accounts route, logging dbAccounts, :", dbAccountholders);
+    res.json(dbAccountholders);
   } catch (error) {
     console.log(error);
     return res.status(500).json({ errorMessage: "SERVER: internal error, request accounts failed" });
   }
+});
+
+router.get("/transactions/:accountId", isAuthenticated, async (req, res, next) => {
+  const { accountId } = req.params;
+  try {
+
+    dbTransactions = await Transaction.find({$or: [{fromAccountId: accountId}, {toAccountId: accountId}]})
+    .sort({_createdAt: -1})
+    .populate({
+      path: "fromAccountId",
+      populate: {
+        path: "accountholder",
+      }
+      })
+      .populate({
+        path: "toAccountId",
+        populate: {
+          path: "accountholder",
+      }
+    });
+  
+    console.log("In route .transactions, logging double populated dbTransactions: ", dbTransactions);
+    res.json(dbTransactions);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({errorMessage: "SERVER: internal error in /transactions"});
+  }
+
 });
 
 router.post("/accounts", isAuthenticated, async (req, res, next) => {
