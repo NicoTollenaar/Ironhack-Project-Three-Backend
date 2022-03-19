@@ -5,6 +5,19 @@ const Account = require("../models/Account.model");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 const moveFundsOnChain = require("./../scripts/moveFundsOnChain");
 const Transaction = require("./../models/Transaction.model");
+
+
+router.get("/accounts", isAuthenticated, async (req, res, next) => {
+  try {
+    const dbAccounts = await Account.find().populate("accountholder");
+    console.log("In GET /accounts route, logging dbAccounts, :", dbAccounts);
+    res.json(dbAccounts);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ errorMessage: "SERVER: internal error, request accounts failed" });
+  }
+});
+
 router.post("/accounts", isAuthenticated, async (req, res, next) => {
   try {
     const name = req.body.query;

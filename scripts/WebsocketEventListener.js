@@ -22,7 +22,7 @@ wss.on("connection", function(connection, request){
   console.log("SERVER: websocket connection established");
   const intervalId = setInterval(()=>{
     client.send("ping");
-  }, 25000);
+  }, 5000);
   client.on("message", function(message){
     if (message.toString() === "pong") {
       console.log(message.toString());
