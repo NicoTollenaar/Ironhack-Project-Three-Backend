@@ -37,7 +37,7 @@ async function writeToDatabase(data) {
         return ({
           dbUpdatedFromAccount,
           dbUpdatedRecipientAccount,
-          dbNewTransaction,
+          dbNewTransaction: [dbNewTransaction]
         });
         
     } catch (error) {
