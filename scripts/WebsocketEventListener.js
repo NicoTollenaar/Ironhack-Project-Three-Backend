@@ -25,7 +25,7 @@ wss.on("connection", function(connection, request){
   }, 5000);
   client.on("message", function(message){
     if (message.toString() === "pong") {
-      console.log(message.toString());
+      // console.log(message.toString());
     }
   });
   client.on("close", () => {
