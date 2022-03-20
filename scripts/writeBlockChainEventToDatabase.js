@@ -24,8 +24,9 @@ async function writeToDatabase(data) {
           { new: true }
         ).populate("accountholder");
   
-        const fromAccountId = dbUpdatedFromAccount.accountholder;
-        const toAccountId = dbUpdatedRecipientAccount.accountholder;
+        const fromAccountId = dbUpdatedFromAccount._id;
+        const toAccountId = dbUpdatedRecipientAccount._id;
+        console.log("Write to database, loggin fromAccountId and toAccountId: ", fromAccountId, toAccountId);
   
         const dbNewTransaction = await Transaction.create({
           fromAccountId,

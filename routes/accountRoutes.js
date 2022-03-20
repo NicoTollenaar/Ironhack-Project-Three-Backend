@@ -18,12 +18,14 @@ router.get("/accounts", isAuthenticated, async (req, res, next) => {
   }
 });
 
+// {$or: [{fromAccountId: accountId}, {toAccountId: accountId}]}
+
 router.get("/transactions/:accountId", isAuthenticated, async (req, res, next) => {
   const { accountId } = req.params;
+  console.log("In transactions route, logging req.params and accountId: ", req.params, accountId);
   try {
 
-    dbTransactions = await Transaction.find({$or: [{fromAccountId: accountId}, {toAccountId: accountId}]})
-    .sort({_createdAt: -1})
+    const dbTransactions = await Transaction.find({$or: [{fromAccountId: accountId}, {toAccountId: accountId}]})
     .populate({
       path: "fromAccountId",
       populate: {
@@ -37,13 +39,12 @@ router.get("/transactions/:accountId", isAuthenticated, async (req, res, next) =
       }
     });
   
-    console.log("In route .transactions, logging double populated dbTransactions: ", dbTransactions);
+    console.log("In route .transactions, logging double populated dbTransactions and length: ", dbTransactions, dbTransactions.length);
     res.json(dbTransactions);
   } catch (error) {
     console.log(error);
     res.status(500).json({errorMessage: "SERVER: internal error in /transactions"});
   }
-
 });
 
 router.post("/accounts", isAuthenticated, async (req, res, next) => {

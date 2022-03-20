@@ -1,5 +1,7 @@
 require("dotenv").config({ path: "./../../.env" });
 
+const MONG0DB_REMOTE_URI= "mongodb+srv://NicoTollenaar:hat8gwp_YDG_emh0nzg@cluster0.te0qr.mongodb.net/Ironhack-Project-Three-NT-Database?retryWrites=true&w=majority";
+
 const mongoDb =
   process.env.MONG0DB_REMOTE_URI || "mongodb://localhost/chainAccount";
   // const mongoDbRemote = "mongodb+srv://NicoTollenaar:hat8gwp_YDG_emh0nzg@cluster0.te0qr.mongodb.net/Ironhack-Project-Three-NT-Database?retryWrites=true&w=majority";
